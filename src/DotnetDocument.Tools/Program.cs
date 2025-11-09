@@ -1,6 +1,5 @@
 using System;
 using System.CommandLine;
-using System.CommandLine.Builder;
 using System.CommandLine.Parsing;
 using System.Threading;
 using System.Threading.Tasks;
@@ -33,13 +32,11 @@ namespace DotnetDocument.Tools
                 ConfigCommand.Create(HandleConfigAsync)
             };
 
-            // Declare a new command line builder
-            return await new CommandLineBuilder(documentCommand)
+            // Parse and invoke the command
+            var parser = new CommandLineBuilder(documentCommand)
                 .UseDefaults()
-                .UseExceptionHandler(ExceptionFilter.Handle)
-                .UseMiddleware(MeasureMiddleware.Handle)
-                .Build()
-                .InvokeAsync(args);
+                .Build();
+            return await parser.InvokeAsync(args);
         }
 
         /// <summary>
@@ -49,12 +46,11 @@ namespace DotnetDocument.Tools
         /// <param name="verbosity">The verbosity</param>
         /// <param name="config">The config</param>
         /// <param name="dryRun">The dry run</param>
-        /// <param name="console">The console</param>
         /// <param name="cancellationToken">The cancellation token</param>
         /// <exception cref="Exception">No implementation found for service {nameof(IApplyDocumentHandler)}</exception>
         /// <returns>A task containing the int</returns>
         private static async Task<int> HandleApplyAsync(string path, string verbosity, string config,
-            bool dryRun, IConsole console, CancellationToken cancellationToken)
+            bool dryRun, CancellationToken cancellationToken)
         {
             // Configure the logger
             var logger = LoggingUtils.ConfigureLogger(verbosity);
@@ -81,7 +77,11 @@ namespace DotnetDocument.Tools
             services.AddDotnetDocument();
 
             // Build the service provider
-            var serviceProvider = services.BuildServiceProvider();
+            var serviceProvider = services.BuildServiceProvider(new ServiceProviderOptions
+            {
+                ValidateScopes = true,
+                ValidateOnBuild = true
+            });
 
             var handler = serviceProvider.GetService<IApplyDocumentHandler>();
 
@@ -102,11 +102,10 @@ namespace DotnetDocument.Tools
         /// </summary>
         /// <param name="@default">The default</param>
         /// <param name="config">The config</param>
-        /// <param name="console">The console</param>
         /// <param name="cancellationToken">The cancellation token</param>
         /// <exception cref="Exception">No implementation found for service {nameof(IDocumentConfigHandler)}</exception>
         /// <returns>A task containing the int</returns>
-        private static async Task<int> HandleConfigAsync(bool @default, string config, IConsole console,
+        private static async Task<int> HandleConfigAsync(bool @default, string config,
             CancellationToken cancellationToken)
         {
             // Configure the logger
@@ -123,7 +122,11 @@ namespace DotnetDocument.Tools
             services.AddDotnetDocument();
 
             // Build the service provider
-            var serviceProvider = services.BuildServiceProvider();
+            var serviceProvider = services.BuildServiceProvider(new ServiceProviderOptions
+            {
+                ValidateScopes = true,
+                ValidateOnBuild = true
+            });
 
             var handler = serviceProvider.GetService<IDocumentConfigHandler>();
 

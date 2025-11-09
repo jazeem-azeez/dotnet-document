@@ -1,5 +1,4 @@
 using System.CommandLine;
-using System.CommandLine.Invocation;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -63,45 +62,34 @@ namespace DotnetDocument.Tools.CLI
         /// <returns>The apply command</returns>
         internal static Command Create(Handler handler)
         {
-            var applyCommand = new Command("apply", ApplyDescription)
+            var pathArgument = new Argument<string>("path")
             {
-                new Argument<string>
-                {
-                    Arity = ArgumentArity.ZeroOrOne,
-                    Description = PathDescription,
-                    Name = "path"
-                },
-                new Option<string>(new[]
-                {
-                    "--config",
-                    "-c"
-                }, ConfigFilePathDescription)
-                {
-                    IsRequired = false,
-                    Argument = new Argument<string>
-                    {
-                        Arity = ArgumentArity.ExactlyOne
-                    }
-                },
-                new Option<string>(new[]
-                {
-                    "--verbosity",
-                    "-v"
-                }, VerboseDescription)
-                {
-                    IsRequired = false,
-                    Argument = new Argument<string?>
-                    {
-                        Arity = ArgumentArity.ExactlyOne
-                    }.FromAmong(VerbosityLevels)
-                },
-                new Option(new[]
-                {
-                    "--dry-run"
-                }, DryRunDescription)
+                Arity = ArgumentArity.ZeroOrOne,
+                Description = PathDescription
             };
 
-            applyCommand.Handler = CommandHandler.Create(new Handler(handler));
+            var configOption = new Option<string>("--config", ConfigFilePathDescription)
+            {
+                Aliases = { "-c" }
+            };
+
+            var verbosityOption = new Option<string>("--verbosity", VerboseDescription)
+            {
+                Aliases = { "-v" }
+            };
+            // Note: FromAmong validation can be added via AddValidator if needed
+
+            var dryRunOption = new Option<bool>("--dry-run", DryRunDescription);
+
+            var applyCommand = new Command("apply", ApplyDescription)
+            {
+                pathArgument,
+                configOption,
+                verbosityOption,
+                dryRunOption
+            };
+
+            applyCommand.SetHandler(handler, pathArgument, verbosityOption, configOption, dryRunOption);
 
             return applyCommand;
         }
@@ -110,6 +98,6 @@ namespace DotnetDocument.Tools.CLI
         /// The handler
         /// </summary>
         internal delegate Task<int> Handler(string path, string verbosity, string config,
-            bool dryRun, IConsole console, CancellationToken cancellationToken);
+            bool dryRun, CancellationToken cancellationToken);
     }
 }

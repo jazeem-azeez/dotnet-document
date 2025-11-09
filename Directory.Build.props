@@ -3,10 +3,6 @@
   <Import Project="build\Version.props" />
 
   <PropertyGroup>
-    <SampleProperty Condition="'$(SampleProperty)' == ''">DefaultValue</SampleProperty>
-  </PropertyGroup>
-  
-  <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <LangVersion>latest</LangVersion>
     <!-- Enable nullable and treat their warnings as errors -->

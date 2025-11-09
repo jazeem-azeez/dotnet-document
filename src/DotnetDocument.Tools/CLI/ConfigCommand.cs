@@ -1,5 +1,4 @@
 using System.CommandLine;
-using System.CommandLine.Invocation;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -33,27 +32,20 @@ namespace DotnetDocument.Tools.CLI
         /// <returns>The config command</returns>
         internal static Command Create(Handler handler)
         {
-            var configCommand = new Command("config", ConfigDescription)
+            var configOption = new Option<string>("--config", ConfigFilePathDescription)
             {
-                new Option<string>(new[]
-                {
-                    "--config",
-                    "-c"
-                }, ConfigFilePathDescription)
-                {
-                    IsRequired = false,
-                    Argument = new Argument<string>
-                    {
-                        Arity = ArgumentArity.ExactlyOne
-                    }
-                },
-                new Option(new[]
-                {
-                    "--default"
-                }, DefaultDescription)
+                Aliases = { "-c" }
             };
 
-            configCommand.Handler = CommandHandler.Create(new Handler(handler));
+            var defaultOption = new Option<bool>("--default", DefaultDescription);
+
+            var configCommand = new Command("config", ConfigDescription)
+            {
+                configOption,
+                defaultOption
+            };
+
+            configCommand.SetHandler(handler, defaultOption, configOption);
 
             return configCommand;
         }
@@ -61,7 +53,7 @@ namespace DotnetDocument.Tools.CLI
         /// <summary>
         /// The handler
         /// </summary>
-        internal delegate Task<int> Handler(bool @default, string config, IConsole console,
+        internal delegate Task<int> Handler(bool @default, string config,
             CancellationToken cancellationToken);
     }
 }

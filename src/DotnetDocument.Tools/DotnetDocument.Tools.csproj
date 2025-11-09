@@ -8,12 +8,12 @@
         <AssemblyName>dotnet-document</AssemblyName>
         <PackageId>dotnet-document</PackageId>
         <Authors>p1va</Authors>
-        <PackageLicenseUrl>https://github.com/p1va/dotnet-document/blob/main/LICENSE</PackageLicenseUrl>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
         <RepositoryUrl>https://github.com/p1va/dotnet-document</RepositoryUrl>
         <Company></Company>
         <Product>dotnet-document</Product>
         <Title>dotnet-document</Title>
-        <Description>A tool for auto-generating XML documentation for you C# code</Description>
+        <Description>A tool for auto-generating XML documentation for your C# code</Description>
     </PropertyGroup>
 
     <ItemGroup>
@@ -34,8 +34,8 @@
       <PackageReference Include="OneOf" Version="3.0.263" />
       <PackageReference Include="Serilog.Extensions.Logging" Version="8.0.0" />
       <PackageReference Include="Serilog.Sinks.Console" Version="5.0.1" />
-      <PackageReference Include="System.CommandLine" Version="2.0.0-beta1.20574.7" />
-      <PackageReference Include="YamlDotNet.NetCore" Version="1.0.0" />
+      <PackageReference Include="System.CommandLine" Version="2.0.0-rc.2.25502.107" />
+      <PackageReference Include="YamlDotNet" Version="16.3.0" />
     </ItemGroup>
 
 </Project>

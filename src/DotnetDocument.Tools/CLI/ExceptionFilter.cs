@@ -1,5 +1,5 @@
 using System;
-using System.CommandLine.Invocation;
+using System.CommandLine;
 using System.IO;
 using DotnetDocument.Tools.Handlers;
 using DotnetDocument.Tools.Utils;
@@ -16,8 +16,9 @@ namespace DotnetDocument.Tools.CLI
         /// </summary>
         /// <param name="exception">The exception</param>
         /// <param name="context">The context</param>
-        internal static void Handle(Exception exception, InvocationContext context)
+        internal static void Handle(Exception exception, object context)
         {
+            // TODO: Update to use System.CommandLine 2.0 API when middleware/exception handler support is available
             //context.Console.Error.Write(exception.ToStringDemystified());
             var logger = LoggingUtils.ConfigureLogger(null);
 
@@ -41,7 +42,7 @@ namespace DotnetDocument.Tools.CLI
                     break;
             }
 
-            context.ResultCode = (int)code;
+            // context.ExitCode = (int)code; // TODO: Update when API is available
         }
     }
 }
