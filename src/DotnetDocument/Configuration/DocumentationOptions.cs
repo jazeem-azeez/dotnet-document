@@ -19,6 +19,11 @@ namespace DotnetDocument.Configuration
         public bool Required { get; init; } = true;
 
         /// <summary>
+        /// Gets or inits the value indicating whether to document private members
+        /// </summary>
+        public bool IncludePrivate { get; init; } = true;
+
+        /// <summary>
         /// Gets the syntax kind
         /// </summary>
         /// <returns>The syntax kind</returns>
@@ -200,7 +205,26 @@ namespace DotnetDocument.Configuration
         /// Gets the syntax kind
         /// </summary>
         /// <returns>The syntax kind</returns>
-        public override SyntaxKind GetSyntaxKind() => SyntaxKind.EnumDeclaration;
+        public override SyntaxKind GetSyntaxKind() => SyntaxKind.EnumMemberDeclaration;
+    }
+
+    /// <summary>
+    /// The field documentation options class
+    /// </summary>
+    /// <seealso cref="MemberDocumentationOptionsBase" />
+    public class FieldDocumentationOptions : MemberDocumentationOptionsBase
+    {
+        /// <summary>
+        /// Gets or inits the value of the summary
+        /// </summary>
+        public SummaryDocumentationOptions Summary { get; init; } =
+            new($"The {TemplateKeys.Name}");
+
+        /// <summary>
+        /// Gets the syntax kind
+        /// </summary>
+        /// <returns>The syntax kind</returns>
+        public override SyntaxKind GetSyntaxKind() => SyntaxKind.FieldDeclaration;
     }
 
     /// <summary>
@@ -444,6 +468,11 @@ namespace DotnetDocument.Configuration
         public EnumMemberDocumentationOptions EnumMember { get; init; } = new();
 
         /// <summary>
+        /// Gets or inits the value of the field
+        /// </summary>
+        public FieldDocumentationOptions Field { get; init; } = new();
+
+        /// <summary>
         /// Gets or inits the value of the default member
         /// </summary>
         public DefaultMemberDocumentationOptions DefaultMember { get; init; } = new();
@@ -533,6 +562,7 @@ namespace DotnetDocument.Configuration
             Property,
             Enum,
             EnumMember,
+            Field,
             DefaultMember
         };
     }

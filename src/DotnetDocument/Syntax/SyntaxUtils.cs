@@ -289,6 +289,46 @@ namespace DotnetDocument.Syntax
         }
 
         /// <summary>
+        /// Checks if the member is private
+        /// </summary>
+        /// <param name="node">The syntax node</param>
+        /// <returns>True if the member is private, false otherwise</returns>
+        public static bool IsPrivate(SyntaxNode node)
+        {
+            // Check for member declaration syntax nodes that have modifiers
+            if (node is MemberDeclarationSyntax memberDeclaration)
+            {
+                var modifiers = memberDeclaration.Modifiers;
+                
+                // Check if private modifier exists
+                if (modifiers.Any(m => m.IsKind(SyntaxKind.PrivateKeyword)))
+                    return true;
+                
+                // If no access modifier is specified, it defaults to private for class members
+                // (except for interface members which are public by default)
+                var hasAccessModifier = modifiers.Any(m => 
+                    m.IsKind(SyntaxKind.PublicKeyword) ||
+                    m.IsKind(SyntaxKind.ProtectedKeyword) ||
+                    m.IsKind(SyntaxKind.InternalKeyword) ||
+                    m.IsKind(SyntaxKind.PrivateKeyword));
+                
+                // For class/struct members, if no access modifier, it's private
+                // For interface members, if no access modifier, it's public
+                if (!hasAccessModifier)
+                {
+                    // Check if parent is an interface
+                    var parent = node.Parent;
+                    if (parent is InterfaceDeclarationSyntax)
+                        return false; // Interface members are public by default
+                    
+                    return true; // Class/struct members are private by default
+                }
+            }
+            
+            return false;
+        }
+
+        /// <summary>
         /// Parses the code text
         /// </summary>
         /// <typeparam name="TSyntaxNode">The syntax node</typeparam>

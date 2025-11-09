@@ -38,6 +38,7 @@ namespace DotnetDocument.Tools
                 .AddTransient<IDocumentationStrategy, ConstructorDocumentationStrategy>()
                 .AddTransient<IDocumentationStrategy, MethodDocumentationStrategy>()
                 .AddTransient<IDocumentationStrategy, PropertyDocumentationStrategy>()
+                .AddTransient<IDocumentationStrategy, FieldDocumentationStrategy>()
                 .AddTransient<IDocumentationStrategy, DefaultDocumentationStrategy>();
 
             // Add attribute based service resolver
@@ -57,7 +58,10 @@ namespace DotnetDocument.Tools
                     .GetServices<IDocumentationStrategy>()
                     .SelectMany(s => s.GetSupportedKinds());
 
-                return new DocumentationSyntaxWalker(supportedDocumentationKinds);
+                // Get documentation options (will use default if not configured yet)
+                var options = provider.GetService<DocumentationOptions>() ?? new DocumentationOptions();
+
+                return new DocumentationSyntaxWalker(supportedDocumentationKinds, options);
             });
 
             // Add the commands

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using DotnetDocument.Configuration;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
@@ -17,10 +18,20 @@ namespace DotnetDocument.Syntax
         private readonly IEnumerable<SyntaxKind> _kinds;
 
         /// <summary>
+        /// The documentation options
+        /// </summary>
+        private readonly DocumentationOptions _options;
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="DocumentationSyntaxWalker" /> class
         /// </summary>
         /// <param name="kinds">The kinds</param>
-        public DocumentationSyntaxWalker(IEnumerable<SyntaxKind> kinds) => _kinds = kinds;
+        /// <param name="options">The documentation options</param>
+        public DocumentationSyntaxWalker(IEnumerable<SyntaxKind> kinds, DocumentationOptions options)
+        {
+            _kinds = kinds;
+            _options = options;
+        }
 
         /// <summary>
         /// Gets the value of the nodes with xml doc
@@ -56,6 +67,13 @@ namespace DotnetDocument.Syntax
         {
             if (IsDocumentable(node.Kind()))
             {
+                // Check if we should skip private members
+                if (SyntaxUtils.IsPrivate(node) && !ShouldIncludePrivate(node))
+                {
+                    base.DefaultVisit(node);
+                    return;
+                }
+
                 if (SyntaxUtils.IsDocumented(node))
                     NodesWithXmlDoc.Add(node);
                 else
@@ -63,6 +81,31 @@ namespace DotnetDocument.Syntax
             }
 
             base.DefaultVisit(node);
+        }
+
+        /// <summary>
+        /// Determines if private members should be included based on configuration
+        /// </summary>
+        /// <param name="node">The syntax node</param>
+        /// <returns>True if private members should be included for this node type</returns>
+        private bool ShouldIncludePrivate(SyntaxNode node)
+        {
+            // Map syntax kind to the appropriate options
+            MemberDocumentationOptionsBase? options = node.Kind() switch
+            {
+                SyntaxKind.ClassDeclaration => _options.Class,
+                SyntaxKind.InterfaceDeclaration => _options.Interface,
+                SyntaxKind.ConstructorDeclaration => _options.Constructor,
+                SyntaxKind.MethodDeclaration => _options.Method,
+                SyntaxKind.PropertyDeclaration => _options.Property,
+                SyntaxKind.EnumDeclaration => _options.Enum,
+                SyntaxKind.EnumMemberDeclaration => _options.EnumMember,
+                SyntaxKind.FieldDeclaration => _options.Field, // Fields use field-specific options
+                SyntaxKind.EventDeclaration => _options.DefaultMember, // Events use default member options
+                _ => _options.DefaultMember
+            };
+
+            return options?.IncludePrivate ?? true;
         }
 
         /// <summary>

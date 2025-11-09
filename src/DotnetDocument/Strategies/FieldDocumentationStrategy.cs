@@ -1,8 +1,9 @@
 using System.Collections.Generic;
+using System.Linq;
 using DotnetDocument.Configuration;
 using DotnetDocument.Format;
 using DotnetDocument.Strategies.Abstractions;
-using DotnetDocument.Syntax;
+using Humanizer;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.Extensions.Logging;
@@ -10,16 +11,11 @@ using Microsoft.Extensions.Logging;
 namespace DotnetDocument.Strategies
 {
     /// <summary>
-    /// The default documentation strategy class
+    /// The field documentation strategy class
     /// </summary>
     /// <seealso cref="DocumentationStrategyBase{T}" />
-    // FieldDeclaration is now handled by FieldDocumentationStrategy
-    [Strategy(nameof(SyntaxKind.DelegateDeclaration))]
-    [Strategy(nameof(SyntaxKind.EventDeclaration))]
-    [Strategy(nameof(SyntaxKind.IndexerDeclaration))]
-    [Strategy(nameof(SyntaxKind.RecordDeclaration))]
-    [Strategy(nameof(SyntaxKind.StructDeclaration))]
-    public class DefaultDocumentationStrategy : DocumentationStrategyBase<MemberDeclarationSyntax>
+    [Strategy(nameof(SyntaxKind.FieldDeclaration))]
+    public class FieldDocumentationStrategy : DocumentationStrategyBase<FieldDeclarationSyntax>
     {
         /// <summary>
         /// The formatter
@@ -29,21 +25,21 @@ namespace DotnetDocument.Strategies
         /// <summary>
         /// The logger
         /// </summary>
-        private readonly ILogger<DefaultDocumentationStrategy> _logger;
+        private readonly ILogger<FieldDocumentationStrategy> _logger;
 
         /// <summary>
         /// The options
         /// </summary>
-        private readonly DefaultMemberDocumentationOptions _options;
+        private readonly FieldDocumentationOptions _options;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="DefaultDocumentationStrategy" /> class
+        /// Initializes a new instance of the <see cref="FieldDocumentationStrategy" /> class
         /// </summary>
         /// <param name="logger">The logger</param>
         /// <param name="formatter">The formatter</param>
         /// <param name="options">The options</param>
-        public DefaultDocumentationStrategy(ILogger<DefaultDocumentationStrategy> logger,
-            IFormatter formatter, DefaultMemberDocumentationOptions options) =>
+        public FieldDocumentationStrategy(ILogger<FieldDocumentationStrategy> logger,
+            IFormatter formatter, FieldDocumentationOptions options) =>
             (_logger, _formatter, _options) = (logger, formatter, options);
 
         /// <summary>
@@ -52,29 +48,27 @@ namespace DotnetDocument.Strategies
         /// <returns>An enumerable of syntax kind</returns>
         public override IEnumerable<SyntaxKind> GetSupportedKinds() => new[]
         {
-            // FieldDeclaration is now handled by FieldDocumentationStrategy
-            SyntaxKind.DelegateDeclaration,
-            SyntaxKind.EventDeclaration,
-            SyntaxKind.IndexerDeclaration,
-            SyntaxKind.RecordDeclaration,
-            SyntaxKind.StructDeclaration
+            SyntaxKind.FieldDeclaration
         };
 
         /// <summary>
         /// Applies the node
         /// </summary>
         /// <param name="node">The node</param>
-        /// <returns>The member declaration syntax</returns>
-        public override MemberDeclarationSyntax Apply(MemberDeclarationSyntax node)
+        /// <returns>The field declaration syntax</returns>
+        public override FieldDeclarationSyntax Apply(FieldDeclarationSyntax node)
         {
-            // Retrieve member name
-            var name = SyntaxUtils.FindMemberIdentifier(node);
+            // Retrieve field name (fields can have multiple variables, take the first one)
+            var fieldName = node.Declaration.Variables.FirstOrDefault()?.Identifier.Text ?? string.Empty;
 
-            // Declare the summary by using the template from configuration
+            // Humanize the field name
+            var humanizedFieldName = fieldName.Humanize().ToLower();
+
             var summary = new List<string>
             {
+                // Declare the summary by using the template from configuration
                 _formatter.FormatName(_options.Summary.Template,
-                    (TemplateKeys.Name, name))
+                    (TemplateKeys.Name, humanizedFieldName))
             };
 
             return GetDocumentationBuilder()
@@ -84,3 +78,4 @@ namespace DotnetDocument.Strategies
         }
     }
 }
+
